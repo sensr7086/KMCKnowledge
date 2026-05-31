@@ -1,0 +1,170 @@
+# {{ KNOWLEDGE_REPO_NAME }} 저장소 구축 사양 (STRUCTURE)
+
+> 이 문서는 Cowork 에이전트가 **{{ KNOWLEDGE_REPO_NAME }} 저장소를 처음 구축**할 때 따르는 일회성 사양서다.
+> 저장소가 만들어진 뒤의 **운영·작업 규약**은 `CLAUDE.md` 가 담는다. 두 문서를 같이 둔다.
+
+---
+
+## 0. 사전 정보 (작업 전 사용자 확인)
+
+다음 두 경로를 사용자에게 확인하고 진행한다. 임의 추정 금지.
+
+- **raw 출처**: {{ PROJECT_NAME }} 코드 루트 (예: `{{ CODE_REPO_PATH }}`)
+- **저장소 위치**: {{ PROJECT_NAME }} **밖**의 별도 디렉토리 (예: `{{ KNOWLEDGE_REPO_PATH }}`)
+
+저장소는 {{ PROJECT_NAME }} 안에 두지 않는다. 코드 저장소와 지식 저장소는 독립적으로 버전 관리·갱신된다.
+
+---
+
+## 1. 디렉토리 구조 (생성 직후 상태)
+
+다음 트리를 그대로 생성한다.
+
+```
+{{ KNOWLEDGE_REPO_NAME }}/
+├── CLAUDE.md                 # 운영 헌법 — 이 저장소에서 작업하는 모든 에이전트가 먼저 읽음
+├── STRUCTURE.md              # 본 문서 — 구축 사양 (초기 구축 후 보존)
+├── project.config.md         # 인스턴스 변수 정의 (단일 진실원)
+├── categories.md             # 카테고리 레지스트리 — 활성/예약/폐기 + 자동 분류 규칙 (SSOT)
+├── index.md                  # 전체 카탈로그 · 생성기 locate 진입점 · 매 ingest 후 재생성
+├── catalogs/                 # 카테고리당 1 파일. 신설은 categories.md 의 절차로.
+│   ├── actor.md
+│   ├── component.md
+│   ├── datatable.md
+│   ├── subsystem.md
+│   ├── interface.md
+│   └── assetuserdata.md
+├── entities/                 # 클래스별 정제 페이지 — 초기엔 비어 있어도 됨
+│   └── .gitkeep
+├── .claude/                  # Claude Code / Cowork 자동 발견 위치
+│   └── skills/
+│       └── ingest-ue-project/  # 인덱서 스킬 (또는 plugin 으로 설치 시 ~/.claude/plugins/ 측)
+└── raw/                      # {{ PROJECT_NAME }} 코드 사본 또는 심볼릭 참조 — 운영 정책은 §3.4
+    └── .gitkeep
+```
+
+> **주의 — 본 §1 은 초기 구축 직후의 트리**. 카테고리 신설로 catalogs/ 에 파일이 추가되거나, plugin 형태 설치 시 `.claude/` 가 비어 있을 수 있다 (글로벌 plugin 사용 시). 본 트리는 *권장 골격*.
+
+---
+
+## 2. 명명 규약 (전 파일 공통)
+
+- **entity 파일명**: 타입 접두사(`U`/`A`/`F`/`I`)를 제거한 형태. 예) `U{{ ENTITY_NAME_PREFIX }}TableManager` → `{{ ENTITY_NAME_PREFIX }}TableManager.md`, `F{{ ENTITY_NAME_PREFIX }}DataBase` → `{{ ENTITY_NAME_PREFIX }}DataBase.md`, `A{{ ENTITY_NAME_PREFIX }}Character` → `{{ ENTITY_NAME_PREFIX }}Character.md`
+- **frontmatter `title` 필드**: 접두사 포함 정식 타입명 유지. 파일명과 다름.
+- **catalog 파일명**: 카테고리 소문자, separator 없음. 신설 카테고리는 [[categories]] §명명 규약 준수.
+- **내부 링크**: `[[entities/{{ ENTITY_NAME_PREFIX }}TableManager]]`, `[[catalogs/datatable]]` 형식. 파일명 기준(접두사 없음).
+- **신뢰도 태그**: 🟢 VAULT / 🟡 PARTIAL / 🔴 INFERRED. frontmatter `confidence` 와 본문 인라인 표기 양쪽에 사용.
+
+---
+
+## 3. 초기 파일 내용
+
+### 3.1 `index.md` (초기 상태)
+
+`templates/index.md.template` 의 골격으로 시작. ingest 가 돌 때마다 카운트·목록·날짜를 자동 갱신.
+
+### 3.2 `catalogs/*.md` (초기 상태)
+
+각 카테고리에 대해 `templates/catalogs/_skeleton.md.template` 의 골격으로 시작. ingest 가 채움.
+
+### 3.3 `entities/` (초기 상태)
+
+빈 디렉토리 + `.gitkeep`. 첫 ingest 가 페이지를 채운다.
+
+### 3.4 `raw/` 운영 정책
+
+raw 는 {{ PROJECT_NAME }} 코드를 **출처로 참조**하는 자리다. 다음 중 한 방식으로 운영하며, 사용자가 선택한다.
+
+- **(A) 참조만**: raw/ 는 빈 디렉토리로 두고, 모든 코드 읽기는 {{ PROJECT_NAME }} 실제 경로에서 한다.
+  → entity frontmatter 의 `source_paths` 는 {{ PROJECT_NAME }} 루트 기준 상대경로.
+  → Cowork 사용 시 코드 저장소를 **별도 폴더로 마운트** 추천.
+- **(B) 사본**: 인덱싱 대상 코드를 raw/ 로 복사하여 스냅샷 보관.
+  → 갱신 시점이 명확하지만 동기화 책임이 생긴다.
+- **(C) 심볼릭 링크 / junction**: raw/ 가 {{ PROJECT_NAME }} 디렉토리를 가리키는 symlink (Windows: junction).
+  → 항상 최신이지만 OS·도구 의존성 있음.
+
+초기 권장: **(A) 참조만**. 단순하고 동기화 이슈 없음.
+
+---
+
+## 4. entity 페이지 양식 (ingest 가 채울 때 따르는 규칙)
+
+이 섹션은 **초기 구축 단계에선 만들 일이 없지만**, STRUCTURE.md 에 명시해 두어 이후 ingest 작업의 단일 진실원(SSOT)으로 삼는다.
+
+### 4.1 frontmatter (전 항목 필수)
+
+```yaml
+---
+title: "U{{ ENTITY_NAME_PREFIX }}TableManager"      # 접두사 포함 정식 타입명
+kind: entity
+category: DataTable             # categories.md 의 활성 카테고리 중 하나
+base_class: UObject             # 직접 상속 베이스
+module: {{ MODULE_API_PREFIXES }}    # *_API 매크로 또는 .Build.cs 모듈명
+confidence: 🟢 VAULT            # 🟢 VAULT | 🟡 PARTIAL | 🔴 INFERRED
+source_paths:                   # raw 출처 (생성기 fallback 시 직접 열기용)
+  - {{ PROJECT_NAME }}/MyModule/Path/{{ ENTITY_NAME_PREFIX }}TableManager.h
+  - {{ PROJECT_NAME }}/MyModule/Path/{{ ENTITY_NAME_PREFIX }}TableManager.cpp
+vault_refs:                     # 코드 주석 [[...]] 에서 추출한 mcwiki 링크
+  - synthesis/subsystem-advanced-patterns
+  - concepts/UE-FStructProperty-Cast-Type-Safety
+last_ingested: 2026-05-29
+---
+```
+
+### 4.2 본문 섹션 (순서 고정)
+
+1. **한 줄 정의** — 이 클래스가 무엇인가, 한 문장.
+2. **소속 / 상속** — 카테고리, 상속 선언, UCLASS/USTRUCT 지정자, 라이프사이클.
+3. **핵심 구조** — 주요 함수 시그니처, 멤버, 템플릿/매크로. BP 노출 여부.
+4. **따르는 패턴** — 주석의 "설계 결정" 블록 + vault 링크.
+5. **⚠ 함정** — 주석의 함정 기록. 생성기 안전장치.
+6. **연관 entity** — 다른 entity 링크, 미인덱싱 의존은 "(미인덱싱)" 표기.
+
+### 4.3 작성 원칙
+
+- **추론보다 추출**: 코드 주석에 `[[...]]` 가 있으면 그대로 옮긴다. 새로 추론한 항목은 본문에서 🔴 표기.
+- **빈칸을 지어내지 않는다**: 근거 없으면 confidence 를 🟡/🔴 로 낮추고 누락 사실을 본문에 명시.
+- **mcwiki 는 읽기만**: vault_refs 검증을 위한 `read_page` 호출 외에 mcwiki 를 수정하지 않는다.
+
+---
+
+## 5. 카테고리 판정 규칙 (ingest 시 사용)
+
+> **단일 진실원** = [[categories]]. 본 §5 는 빠른 참조용 요약. 신설·자동 분류 규칙의 권위 정의는 categories.md.
+
+| 상속/특징 | 대분류 |
+|---|---|
+| `A...` 액터 + Actor 보조 UObject | **Actor** |
+| `U...Component` 자손 + `UAnimInstance` 자손 | **Component** |
+| `USubsystem` 자손 | **Subsystem** |
+| `I...Interface` | **Interface** |
+| `FTableRowBase` 자손 + UDataTable 관리 역할 UObject | **DataTable** |
+| `UAssetUserData` 자손 | **AssetUserData** |
+
+**예약 카테고리** (트리거 시 자동 신설): Asset / GraphNode / BlueprintLibrary / Editor.
+
+분류 매칭 실패 시 [[categories]] §신설 절차 1번 (사용자 보고) 발화. 엣지 케이스는 ingest 스킬의 `references/edge-cases.md` 참조.
+
+---
+
+## 6. 구축 절차 (Cowork 에이전트가 따를 순서)
+
+1. 사용자에게 raw 출처·저장소 위치 확인. 임의 추정 금지.
+2. `project.config.md` 작성 — 변수 채움 (template 의 §변수 치환 절차 참조).
+3. templates 의 나머지 파일(CLAUDE/STRUCTURE/categories/index)을 placeholder 치환하여 저장소 루트에 배치.
+4. 위 §1 트리대로 `catalogs/`, `entities/`, `raw/` 디렉토리 생성.
+5. `catalogs/` 의 6 활성 카테고리 골격 파일을 `templates/catalogs/_skeleton.md.template` 으로 생성.
+6. `entities/.gitkeep`, `raw/.gitkeep` 생성.
+7. raw 운영 방식 (A/B/C) 을 사용자에게 확인.
+8. 구축 완료 보고 — 다음 단계는 `/ingest-ue-project` 스킬로 첫 인덱싱.
+
+---
+
+## 7. 두 워크플로우의 위치 (참고)
+
+이 저장소는 두 워크플로우의 접점이다. 운영 시 혼동 방지를 위해 명시한다.
+
+- **워크플로우 1 — 인덱서** (`/ingest-ue-project` 스킬): {{ PROJECT_NAME }} 코드를 읽어 이 저장소에 **쓴다**.
+- **워크플로우 2 — 생성기** (analyze-spec → locate → plan → implement): 기획서를 받아 이 저장소를 **읽고** {{ PROJECT_NAME }} 에 코드 파일을 쓴다. (별도 plugin 예정)
+
+본 STRUCTURE.md 는 워크플로우 1·2 가 모두 동작할 수 있는 **그릇(저장소 구조)** 까지만 책임진다. 워크플로우 자체의 동작 규약은 각 스킬의 SKILL.md 와 본 저장소의 CLAUDE.md 가 정의한다.

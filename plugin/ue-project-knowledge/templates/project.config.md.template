@@ -1,0 +1,76 @@
+# {{ PROJECT_NAME }} Knowledge — project.config
+
+> 본 파일은 인스턴스화 시 사용자가 채우는 **변수 정의의 단일 진실원**. 다른 framework 문서들이 본 파일의 값을 참조한다 (`{{ VAR }}` placeholder).
+> 변경 시 framework 문서들은 자동 반영 안 됨 — 인스턴스화 시점에 sed/find-replace 로 일괄 치환했기 때문. 운영 중 변경이 필요하면 동일 치환 재실행 또는 본 표를 참고해 수동 수정.
+
+## 필수 변수
+
+| 변수 | 값 | 설명 |
+|---|---|---|
+| `PROJECT_NAME` | {{ PROJECT_NAME }} | 프로젝트 명 (예: KMCProject). `.uproject` 파일명과 동일 권장. |
+| `KNOWLEDGE_REPO_NAME` | {{ KNOWLEDGE_REPO_NAME }} | 본 저장소 명 (예: KMCKnowledge). 보통 `<PROJECT_NAME>Knowledge`. |
+| `KNOWLEDGE_REPO_PATH` | {{ KNOWLEDGE_REPO_PATH }} | 본 저장소 절대경로 (예: `E:\KMCKnowledge`). 코드 저장소 *밖*. |
+| `CODE_REPO_PATH` | {{ CODE_REPO_PATH }} | 코드 저장소 루트 (예: `E:\MCProject\KMCProject`). `.uproject` 가 있는 폴더. |
+| `ENTITY_NAME_PREFIX` | {{ ENTITY_NAME_PREFIX }} | 프로젝트 클래스 접두사 (예: MC → UMCxxx/AMCxxx/FMCxxx/IMCxxx). 없으면 빈 값. |
+| `MODULE_API_PREFIXES` | {{ MODULE_API_PREFIXES }} | `*_API` 매크로 접두사들 (예: `MCPLAYMODULE / MCEDITORMODULE`). 모듈별 콤마 구분 또는 공백 구분. |
+| `UE_VERSION` | {{ UE_VERSION }} | 엔진 버전 (예: 5.7.4). `.uproject` 의 `EngineAssociation` 또는 `Source/*.Target.cs` 의 IncludeOrderVersion 참조. |
+| `MCWIKI_MCP_SERVER_NAME` | {{ MCWIKI_MCP_SERVER_NAME }} | mcwiki MCP 서버명 (예: `MCWiki_-_UE_5_7_4_Knowledge_Vault`). underscore 권장 (dash 가 namespace 파싱 오류 가능). |
+
+## 선택 변수 (있으면 채움)
+
+| 변수 | 값 | 설명 |
+|---|---|---|
+| `RAW_MODE` | {{ RAW_MODE }} | A=참조만 / B=사본 / C=junction. 기본 A. |
+| `DEFAULT_BRANCH` | {{ DEFAULT_BRANCH }} | git 기본 브랜치 (예: main). git 미사용이면 빈 값. |
+| `OPERATOR_EMAIL` | {{ OPERATOR_EMAIL }} | 운영자 (Cowork 사용자) 이메일 — 자동화 실행 시 식별용. |
+
+---
+
+## 변수 치환 절차 (인스턴스화 시)
+
+새 프로젝트에 plugin 의 templates/ 를 적용할 때, **본 파일을 *제외한* 나머지 .template 파일들에서** 위 값으로 placeholder 치환:
+
+```bash
+# Linux/WSL/bash
+KNOWLEDGE_REPO=/path/to/new/repo
+mkdir -p "$KNOWLEDGE_REPO/catalogs" "$KNOWLEDGE_REPO/entities"
+
+for f in CLAUDE.md STRUCTURE.md categories.md index.md; do
+  sed -e "s|{{ PROJECT_NAME }}|MyProject|g" \
+      -e "s|{{ KNOWLEDGE_REPO_NAME }}|MyProjectKnowledge|g" \
+      -e "s|{{ KNOWLEDGE_REPO_PATH }}|E:\\\\MyProject\\\\MyProjectKnowledge|g" \
+      -e "s|{{ CODE_REPO_PATH }}|E:\\\\MyProject\\\\MyProject|g" \
+      -e "s|{{ ENTITY_NAME_PREFIX }}|MP|g" \
+      -e "s|{{ MODULE_API_PREFIXES }}|MYPROJECTMODULE|g" \
+      -e "s|{{ UE_VERSION }}|5.7.4|g" \
+      -e "s|{{ MCWIKI_MCP_SERVER_NAME }}|MCWiki_-_UE_5_7_4_Knowledge_Vault|g" \
+      < templates/${f}.template > "$KNOWLEDGE_REPO/$f"
+done
+```
+
+PowerShell 동등:
+```powershell
+$Vars = @{
+    PROJECT_NAME = "MyProject"
+    KNOWLEDGE_REPO_NAME = "MyProjectKnowledge"
+    KNOWLEDGE_REPO_PATH = "E:\MyProject\MyProjectKnowledge"
+    CODE_REPO_PATH = "E:\MyProject\MyProject"
+    ENTITY_NAME_PREFIX = "MP"
+    MODULE_API_PREFIXES = "MYPROJECTMODULE"
+    UE_VERSION = "5.7.4"
+    MCWIKI_MCP_SERVER_NAME = "MCWiki_-_UE_5_7_4_Knowledge_Vault"
+}
+foreach ($f in 'CLAUDE.md','STRUCTURE.md','categories.md','index.md') {
+    $content = Get-Content "templates/${f}.template" -Raw
+    foreach ($k in $Vars.Keys) {
+        $content = $content -replace "\{\{ $k \}\}", $Vars[$k]
+    }
+    Set-Content "$KnowledgeRepo/$f" $content
+}
+```
+
+---
+
+## 메모 — 본 인스턴스 (운영 중 갱신)
+
+(인스턴스화 후 운영 중 발견된 추가 변수, 모듈별 특이사항, vault 슬러그 매핑 변경 등을 여기에 기록.)

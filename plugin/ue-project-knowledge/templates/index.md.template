@@ -1,0 +1,52 @@
+# {{ KNOWLEDGE_REPO_NAME }} Index
+
+> Last ingested: (없음 — 초기 상태) · **0 entities / 6 catalogs** · raw = `{{ CODE_REPO_PATH }}`
+> 매 ingest 후 자동 갱신. 생성기 locate 단계의 진입점.
+> **카테고리 시스템**: 단일 진실원 = [[categories]] (활성 6 + 예약 4). 본 인덱스는 활성 카테고리만 enumerate.
+
+---
+
+## 저장소 역할
+- 본 저장소 = **{{ PROJECT_NAME }} 전용 지식** (이 프로젝트는 *실제로* 이렇게 짜여 있다)
+- UE 일반 지식·함정은 **mcwiki** (MCP 서버 `{{ MCWIKI_MCP_SERVER_NAME }}`) 참조 — vault_refs 로 링크
+
+## 신뢰도 범례
+- 🟢 VAULT — ingest 로 정제·검증된 스킬
+- 🟡 PARTIAL — 코드 직접 추론 (정제 전)
+- 🔴 INFERRED — 엔진 지식(mcwiki)으로 구성, 프로젝트 선례 없음 (또는 본문 비활성)
+
+---
+
+## 대분류 (catalogs)
+
+### Actor — [[catalogs/actor]] (0)
+(ingest 시 채움)
+
+### Component — [[catalogs/component]] (0)
+(ingest 시 채움)
+
+### Subsystem — [[catalogs/subsystem]] (0)
+(ingest 시 채움)
+
+### Interface — [[catalogs/interface]] (0)
+(ingest 시 채움)
+
+### DataTable — [[catalogs/datatable]] (0)
+(ingest 시 채움)
+
+### AssetUserData — [[catalogs/assetuserdata]] (0)
+(ingest 시 채움)
+
+---
+
+## 예약된 대분류 ([[categories]] 참조 — 트리거 시 자동 생성)
+
+- **Asset** — UObject 자산 / UDataAsset / UPrimaryDataAsset (DataTable 자손 제외)
+- **GraphNode** — 프로젝트 고유 그래프 콘텐츠 노드
+- **BlueprintLibrary** — UBlueprintFunctionLibrary 자손
+- **Editor** — UEdGraphNode / UEdGraphSchema / UFactory / FAssetTypeActions / S*Widget (정책 결정 필요)
+
+---
+
+## 미인덱싱 큐
+(초기에는 비어 있음. ingest 시 raw 에 있으나 미정제인 클래스를 여기로 옮긴다.)

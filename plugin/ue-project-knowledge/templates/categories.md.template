@@ -1,0 +1,82 @@
+# {{ KNOWLEDGE_REPO_NAME }} Category Registry
+
+> 본 저장소의 entity 분류 카테고리 정의. 새 entity 가 기존 카테고리에 안 맞으면 본 문서를 갱신하고 catalog 파일을 신설하는 절차로 확장.
+> **단일 진실원 (SSOT)**: ingest 워크플로우의 카테고리 판정, catalog 파일 구조, index.md 의 카테고리 섹션 모두 본 문서를 기준으로 한다.
+
+---
+
+## 활성 카테고리 (catalog 파일 존재)
+
+| 카테고리 | catalog | 베이스/판정 기준 | 도입 | 도입 사유 |
+|---|---|---|---|---|
+| Actor | [[catalogs/actor]] | `A...` 액터 (ACharacter / AActor / APawn / ACameraActor / APhysicsVolume 등 자손) + Actor 보조 UObject (Camera Mode 등) | (초기) | STRUCTURE.md §5 초기 정의 |
+| Component | [[catalogs/component]] | `U...Component` (UActorComponent / U*MeshComponent / UCharacterMovementComponent 자손) + `UAnimInstance` 자손 | (초기) | STRUCTURE.md §5 초기 정의 |
+| DataTable | [[catalogs/datatable]] | `FTableRowBase` 자손 + `UDataTable` 로드·관리 역할 UObject | (초기) | STRUCTURE.md §5 초기 정의 |
+| Subsystem | [[catalogs/subsystem]] | `USubsystem` 자손 (UGameInstanceSubsystem / UWorldSubsystem / UTickableWorldSubsystem / UEditorSubsystem / UEngineSubsystem / ULocalPlayerSubsystem) | (초기) | UE 의 Subsystem 5 종은 거의 모든 프로젝트에 등장. 독립 카테고리로 분리. |
+| Interface | [[catalogs/interface]] | `I...Interface` (UINTERFACE + paired native interface, 또는 plain C++ interface) | (초기) | 인터페이스는 "어디에 implements 되는가" 와 "그 자체로 무엇인가" 의 두 관점이 분리되어야 함. 독립 카테고리. |
+| AssetUserData | [[catalogs/assetuserdata]] | `UAssetUserData` 자손 (Mesh / Skeleton / 기타 자산에 첨부되는 메타) | (초기) | UE 표준상 "에셋 메타" 와 "primary 자산" 는 별개 개념. |
+
+---
+
+## 예약된 카테고리 (catalog 파일 없음, 트리거 시 자동 생성)
+
+| 카테고리 | 베이스/판정 기준 | 예약 트리거 |
+|---|---|---|
+| Asset | UObject 자산 + UDataAsset / UPrimaryDataAsset (DataTable 자손 제외) | UObject 자산 또는 UDataAsset 자손 등장 시 |
+| GraphNode | 런타임 그래프 콘텐츠 노드 (예: UMyStory_Node, UMyParts_Node — UEdGraphNode 가 *아닌* 콘텐츠 측) | 프로젝트 고유 그래프 시스템 노드 등장 시 |
+| BlueprintLibrary | `UBlueprintFunctionLibrary` 자손 | UBlueprintFunctionLibrary 자손 첫 등장 시 |
+| Editor | UEdGraphNode / UEdGraphSchema / UFactory / FAssetTypeActions / F*EditorApplication / S*Widget 등 — Editor 모듈 전용 | Editor 모듈 클래스 첫 등장 시 (정책 결정 필요 — 단일 Editor 카테고리 vs Editor.GraphNode/Editor.Schema/... 서브카테고리 분리) |
+
+---
+
+## 폐기된 카테고리 (deprecated)
+
+(없음)
+
+> 폐기 시: 본 표에 항목 추가 + 사유 + 대체 카테고리 명시. catalog 파일은 보존 (히스토리). 영향받는 entity 의 frontmatter 재분류.
+
+---
+
+## 신설 절차 (ingest 가 따르는 규약)
+
+1. **신설 후보 인지** — ingest 가 entity 의 분류를 결정할 때 활성 카테고리 표의 판정 기준에 매칭. 매칭 실패 시 후보 보고:
+   - "이 entity 는 기존 N 카테고리 어느 것에도 정확히 맞지 않습니다. 가까운 카테고리: X. 신설 제안: Y."
+2. **사용자 확인** — (a) 기존 카테고리로 강제 배치 (분류 한계 본문 명시) / (b) 새 카테고리 신설 / (c) 분류 보류 (미인덱싱 큐) — 사용자 선택.
+3. **신설 승인 시**:
+   - 본 표(활성 카테고리)에 행 추가 — 카테고리명, 베이스/판정 기준, 도입일(YYYY-MM-DD), 도입 사유.
+   - `catalogs/<lowercase-name>.md` 골격 생성 (표준 frontmatter + 베이스/관리자/구현체 섹션).
+   - `.claude/skills/ingest-ue-project/references/classification.md` 의 판정 표 동기 갱신.
+   - 영향받는 기존 entity 의 frontmatter `category` 재분류 + 본 catalog 에 등록.
+   - `index.md` 의 카테고리 섹션 추가.
+4. **명명 규약**:
+   - 카테고리명: PascalCase (`Subsystem`, `AssetUserData`, `BlueprintLibrary`).
+   - catalog 파일명: lowercase, separator 없음 (`subsystem.md`, `assetuserdata.md`, `blueprintlibrary.md`).
+   - frontmatter `category` 값: PascalCase 일치 (`category: Subsystem`).
+   - wiki 링크: `[[catalogs/<lowercase>]]`, `[[entities/<EntityName>]]`.
+
+---
+
+## 자동 분류 규칙 (ingest 가 매 entity 에 적용하는 순서)
+
+1. **인터페이스 우선**: 헤더에 `UINTERFACE(...)` + `class I...Interface` 페어 또는 plain `class I...` 명명 → **Interface**.
+2. **상속 베이스 매칭** (top-down):
+   - `: public USubsystem` 자손 (UGameInstance/World/Tickable/Editor/Engine/LocalPlayerSubsystem) → **Subsystem**.
+   - `: public UAssetUserData` → **AssetUserData**.
+   - `: public AActor` 또는 자손 (ACharacter, APawn, ACameraActor, APhysicsVolume 등) → **Actor**.
+   - `: public UActorComponent` 또는 자손 → **Component**.
+   - `: public UAnimInstance` → **Component** (animation runtime).
+   - `: public FTableRowBase` 자손 → **DataTable**.
+   - `: public UBlueprintFunctionLibrary` → **BlueprintLibrary** (예약 — 트리거 시 신설).
+   - `: public UDataAsset / UPrimaryDataAsset` (DataTable 의 *Registry 류 관리자가 아니면*) → **Asset** (예약 — 트리거 시 신설).
+   - `: public UEdGraphNode / UEdGraphSchema / UFactory` 또는 Editor 모듈의 F*/S* 클래스 → **Editor** (예약 — 정책 결정 후 신설).
+3. **역할 기준 판정** (베이스가 범용 UObject 일 때):
+   - `UDataTable` 컬렉션 로드·관리 → **DataTable** (예: U{{ ENTITY_NAME_PREFIX }}TableManager).
+   - 프로젝트 고유 그래프 노드 (UMyStory_*/UMyParts_*/UMyCombo* 등) → **GraphNode** (예약 — 트리거 시 신설).
+   - Actor 보조 UObject (예: Camera Mode 베이스) → **Actor**.
+4. **매칭 실패** → 신설 절차 1번 (사용자 보고) 발화.
+
+---
+
+## 변경 이력
+
+- **(초기 구축)** — 활성 6 + 예약 4 카테고리 정의. {{ PROJECT_NAME }} 의 첫 ingest 시작 시점 골격.

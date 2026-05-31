@@ -1,0 +1,11 @@
+{
+  "name": "ue-project-knowledge",
+  "version": "0.1.0",
+  "description": "UE 프로젝트 전용 지식 저장소(knowledge base) 운영 하네스. 코드 → 지식 인덱싱(워크플로우 1)과 기획서 → 코드 생성(워크플로우 2)의 접점 인프라. mcwiki(UE 일반 지식) 와 분리된 프로젝트 지식 저장소를 표준 카테고리 시스템으로 관리한다.",
+  "author": "KMCProject (1st instance)",
+  "skills": [
+    "skills/scaffold-ue-knowledge/SKILL.md",
+    "skills/ingest-ue-project/SKILL.md"
+  ],
+  "tags": ["unreal-engine", "knowledge-base", "ingest", "indexer", "harness", "scaffold"]
+}

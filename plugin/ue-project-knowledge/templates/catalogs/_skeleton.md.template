@@ -1,0 +1,25 @@
+---
+title: "{{ CATEGORY }} 대분류"
+kind: catalog
+category: {{ CATEGORY }}
+last_ingested: (없음)
+---
+
+# {{ CATEGORY }} 대분류
+
+> {{ KNOWLEDGE_REPO_NAME }} 의 {{ CATEGORY }} 카테고리. [[categories]] §활성 카테고리 의 판정 기준에 매칭되는 entity 들. 페어 카테고리는 본 카테고리 의 특성에 따라 결정 (예: Actor 의 페어 = Subsystem 의 Actor 관리자 + Interface 의 Actor 측 implements).
+
+## 베이스
+(ingest 시 채움)
+
+## 관리자
+(ingest 시 채움)
+
+## 구현체
+(ingest 시 채움)
+
+## 페어 카탈로그
+(ingest 시 채움 — 본 카테고리 와 페어 관계인 다른 카탈로그들 링크)
+
+## 공통 함정
+(ingest 시 entity 들의 공통 함정을 모음)
