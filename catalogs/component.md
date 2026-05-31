@@ -48,7 +48,7 @@ last_ingested: 2026-05-29
 - **헤더의 한국어 주석 CP949 mojibake**: 일부 컴포넌트의 일부 주석 깨져 보임. CLAUDE.md(KMCProject) 명시 — 임의 재인코딩 금지.
 - **MCCOMPONENT_DEF 매크로 의무**: 모든 MC 컴포넌트는 EMCComponentType 식별자 노출.
 - **명칭 오타 누적**: `Movemoent`/`Luanch`/`Infomation`/`Virual`/`Constranit`/`Cancle`/`Legde`/`Deteat`/`Overlab`/`DispalcementRto`/`MoveSpeedandle`/`MoveFlagandle`. BP 노출 변경 시 redirector.
-- **6대 정책 의무** ([[concepts/Component-Policies-6]]): Mobility / NewObject(Outer=Owner) / GC(UPROPERTY+TObjectPtr) / GetOwner 캐싱(TWeakObjectPtr) / Tick(빈 메시 회피) / CDO 안전.
+- **횡단 정책 — 10 Component 6대 의무** ([[ue-cross-cutting-policies/10_ComponentPolicies]]): Mobility / NewObject(Outer=Owner) / GC(UPROPERTY+TObjectPtr) / GetOwner 캐싱(TWeakObjectPtr) / Tick(빈 메시 회피) / CDO 안전. 본 카테고리 전 entity 공통. 추가로 07 Profiling(Tick 보유 시)·11 AssetLoading(Soft 멤버 시)·12 AssetOpt(Mesh/VFX 자산 시)가 entity별 적용 — 각 entity §6 `횡단 정책 준수` + frontmatter `policy_refs` 참조. 적용 매트릭스 SSOT = [[ue-cross-cutting-policies/index]] §3. (2026-05-31 파일럿 마이그레이션 완료.)
 - **FStreamableHandle Pin 의무** + 람다 캡처 = TWeakObjectPtr<this> + IsValid.
 - **PhysAnim Constructor 금지** (UnsafeDuringActorConstruction): BeginPlay 이후만.
 - **Soft 컴포넌트 + Spawner race**: 권장 — `bAutoSpawnSocketNiagara=true`.

@@ -19,6 +19,11 @@ vault_refs:
   - sources/ue-components-physicscomponents
   - sources/ue-components-primitivecomponent
   - synthesis/mc-character-hit-reaction-pipeline
+policy_refs:
+  - component-policies
+  - profiling-scope-rule
+  - asset-loading-policy
+  - asset-optimization-policy
 last_ingested: 2026-05-29
 ---
 
@@ -89,6 +94,17 @@ Soft 참조 전용 SkeletalMeshComponent — Mesh / AnimClass / Override Materia
 - **함정 #8 (motor + simulate 페어)**: `ApplyPhysicalAnimationProfileBelow` 직후 `SetAllBodiesBelowSimulatePhysics` 페어 호출 누락 시 motor 효과 안 나타남 → [[sources/ue-components-physicscomponents]] §11 함정 #8 (헬퍼 안에서 자동 호출).
 - **DisableRagdoll 시 본 snap-back 없음** — 자연스러운 복귀를 원하면 `SnapMeshToOwnerCapsule()` 또는 GetUp AnimMontage 별도 트리거.
 - **Cloth / Physics Asset 동반 로드**: SkeletalMesh 의 자산이므로 Mesh 로드 시 함께 따라옴 — 별도 Soft 분리 불필요.
+
+## 횡단 정책 준수
+> 적용: [[ue-cross-cutting-policies/index]] §3 (Component 행). raw 미마운트 — 추출 본문 근거, 미확인은 ❓.
+
+| 정책 | 적용 | 근거 / 위반·미확인 | 신뢰도 |
+|---|---|---|---|
+| 11 asset-loading | ✅ | Mesh/AnimClass/Materials/Ragdoll 전부 `TSoftObjectPtr`/`TSoftClassPtr` **비동기 로드** + `FStreamableHandle` Pin/Release(LoadHandle/RagdollLoadHandle) + 람다 TWeakObjectPtr 가드 = 정책 정합. → [[ue-cross-cutting-policies/11_AssetLoadingPolicy]] | 🟢 |
+| 10 component | ✅ | 생성자 Tick/AutoActivate OFF(빈 메시 회피), TObjectPtr+UPROPERTY GC, CachedOwner TWeakObjectPtr 캐싱 = 6대 정합(헤더 주석 명시). → [[ue-cross-cutting-policies/10_ComponentPolicies]] | 🟢 |
+| 07 profiling | ✅ | 헤더 주석이 `07_ProfilingScopeRule`(콜백 첫 줄 TRACE) 의무 명시 — 로드 완료 등 콜백 다수. | 🟢 |
+| 12 asset-opt | ✅ | SkeletalMesh — **Bone LOD/SkinCache**(12 §1) 대상. 실제 LOD 설정값 ❓(자산 측). → [[ue-cross-cutting-policies/12_AssetOptimizationPolicy]] | 🟡 |
+| 09 global-iterator | ➖ | 미사용. | 🟢 |
 
 ## 연관 entity
 - [[entities/MCCharacter]] — 주 사용 Owner.

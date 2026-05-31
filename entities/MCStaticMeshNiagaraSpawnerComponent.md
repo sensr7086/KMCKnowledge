@@ -14,6 +14,11 @@ vault_refs:
   - concepts/Profiling-Scope-Rule
   - concepts/MC-Asset-Validation-Policy
   - sources/ue-niagara-skill
+policy_refs:
+  - component-policies
+  - profiling-scope-rule
+  - asset-loading-policy
+  - asset-optimization-policy
 last_ingested: 2026-05-29
 ---
 
@@ -63,6 +68,17 @@ StaticMesh / SkeletalMesh 의 socket 에 부착된 `UMCNiagaraSocketBindings`(UA
 - **얇은 래퍼 — 동등 헬퍼 사용**: UMCNiagaraSocketPreviewSubsystem (Editor) 도 동일 헬퍼 사용 — DRY 의무. 헬퍼 변경 시 양쪽 영향.
 - **Soft 컴포넌트 + 본 Spawner 동시 부착 race**: Soft 컴포넌트가 메시 로드 전이면 GetStaticMesh()==nullptr → AssetUserData 추출 실패. 본 Spawner 단독 사용 시 Owner 가 일반(non-Soft) StaticMeshComponent 라야 안전. UMCSoftStaticMeshComponent 사용 시 `bAutoSpawnSocketNiagara=true` 로 대체.
 - **Pool AutoRelease 보관 = TWeak**: 별도 UPROPERTY 마커 불필요 (TWeakObjectPtr 자체가 GC-aware), 단 lifetime 은 Pool 이 결정.
+
+## 횡단 정책 준수
+> 적용: [[ue-cross-cutting-policies/index]] §3 (Component 행). raw 미마운트 — 추출 본문 근거, 미확인은 ❓.
+
+| 정책 | 적용 | 근거 / 위반·미확인 | 신뢰도 |
+|---|---|---|---|
+| 11 asset-loading | ✅ | `TSoftObjectPtr` 비동기 + `LoadHandle` Pin + Transient TObjectPtr 캐시 + EndPlay Cancel = 정책 정합(헤더 명시). → [[ue-cross-cutting-policies/11_AssetLoadingPolicy]] | 🟢 |
+| 12 asset-opt | ✅ | Niagara — **EffectType 지정 + Quality Scaling**(12 §5) + Pool `ENCPoolMethod::AutoRelease`(헤더 명시) 대상. EffectType 설정 ❓(자산 측). → [[ue-cross-cutting-policies/12_AssetOptimizationPolicy]] | 🟡 |
+| 10 component | ✅ | CachedOwner TWeak, Transient TObjectPtr, Niagara TWeak(Pool 관리) = 6대 정합(헤더 명시). → [[ue-cross-cutting-policies/10_ComponentPolicies]] | 🟢 |
+| 07 profiling | ✅ | 헤더 주석 `TRACE_CPUPROFILER_EVENT_SCOPE` 의무 명시(콜백). | 🟢 |
+| 09 global-iterator | ➖ | 미사용. | 🟢 |
 
 ## 연관 entity
 - [[entities/MCSoftStaticMeshComponent]] — 동등 동작의 자체 처리 경로 (Soft 페어).

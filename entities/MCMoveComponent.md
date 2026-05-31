@@ -9,6 +9,9 @@ source_paths:
   - KMCProject/MCPlayModule/Actor/Component/MCMoveComponent.h
   - KMCProject/MCPlayModule/Actor/Component/MCMoveComponent.cpp
 vault_refs: []
+policy_refs:
+  - component-policies
+  - profiling-scope-rule
 last_ingested: 2026-05-29
 ---
 
@@ -53,6 +56,17 @@ last_ingested: 2026-05-29
 ## ⚠ 함정
 - 명칭 오타 누적: `Movemoent`, `Luanch`, `Movemode` — UFUNCTION 으로 BP 노출 시 redirector 필요할 수 있음.
 - FDelegateHandle 의 unbind 누락 → End() 단계에서 명시 해제 안 하면 stale callback 가능 (🟡 추론).
+
+## 횡단 정책 준수
+> 적용: [[ue-cross-cutting-policies/index]] §3 (Component 행). raw 미마운트 — 추출 본문 근거, 미확인은 ❓.
+
+| 정책 | 적용 | 근거 / 위반·미확인 | 신뢰도 |
+|---|---|---|---|
+| 10 component | ✅ | 베이스 [[entities/MCActorComponent]] 6대 적용. 델리게이트 멤버(OnMovemode 등) GC: UPROPERTY 마커 ❓. | 🟡 |
+| 07 profiling | ✅ | `Update(delta)` 경유 매 프레임 상태 갱신 — 스코프 유무 ❓. → [[ue-cross-cutting-policies/07_ProfilingScopeRule]] | ❓ |
+| 11 asset-loading | ➖ | asset 멤버 없음(enum/델리게이트). | 🟢 |
+| 12 asset-opt | ➖ | 자산 미소유. | 🟢 |
+| 09 global-iterator | ➖ | 미사용. | 🟢 |
 
 ## 연관 entity
 - [[entities/MCActorComponent]] — 직접 베이스.

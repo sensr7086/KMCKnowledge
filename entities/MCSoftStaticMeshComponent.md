@@ -15,6 +15,11 @@ vault_refs:
   - concepts/Soft-Reference-vs-Hard
   - sources/ue-assetclasses-assetuserdata
   - synthesis/mc-soft-asset-component-pattern
+policy_refs:
+  - component-policies
+  - profiling-scope-rule
+  - asset-loading-policy
+  - asset-optimization-policy
 last_ingested: 2026-05-29
 ---
 
@@ -72,6 +77,17 @@ Soft 참조 전용 StaticMeshComponent — Mesh / Override Materials / AssetUser
 - **`RequestSocketNiagaraSpawn` single-shot**: 메시 로드 안 된 상태에서 호출 시 OnSoftMeshLoaded 후 자동 재호출 안 됨 — 외부 책임.
 - **`bAutoSpawnSocketNiagara==false` 면 `bEditorPreviewSocketNiagara` 도 무시** (자동 spawn 비활성 의도 우선).
 - **`AutoFillOverrideMaterialsFromMesh`**: 디자이너 명시 override 가 있으면 절대 덮어쓰지 않음 (배열 빈 경우만 mirroring).
+
+## 횡단 정책 준수
+> 적용: [[ue-cross-cutting-policies/index]] §3 (Component 행). raw 미마운트 — 추출 본문 근거, 미확인은 ❓.
+
+| 정책 | 적용 | 근거 / 위반·미확인 | 신뢰도 |
+|---|---|---|---|
+| 11 asset-loading | ✅ | Mesh/Materials/AssetUserData(Niagara) `TSoftObjectPtr` 비동기 + LoadHandle/SocketBindingsLoadHandle Pin + Editor 동기 분기(EWorldType) = 정책 정합. → [[ue-cross-cutting-policies/11_AssetLoadingPolicy]] | 🟢 |
+| 10 component | ✅ | TObjectPtr/Transient UPROPERTY GC, CachedOwner TWeak, 빈 메시 Tick 회피 = 6대(헤더 주석 명시). → [[ue-cross-cutting-policies/10_ComponentPolicies]] | 🟢 |
+| 07 profiling | ✅ | 헤더 주석 `07_ProfilingScopeRule` 의무 명시. | 🟢 |
+| 12 asset-opt | ✅ | StaticMesh — **LOD/Nanite 결정**(12 §2) 대상. 실제 설정 ❓(자산 측). → [[ue-cross-cutting-policies/12_AssetOptimizationPolicy]] | 🟡 |
+| 09 global-iterator | ➖ | 미사용. | 🟢 |
 
 ## 연관 entity
 - [[entities/MCStaticMeshNiagaraSpawnerComponent]] — 동등 동작의 별도 Spawner. Soft 컴포넌트 사용 시 본 페어 대체 가능.

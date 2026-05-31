@@ -3,6 +3,7 @@
 > Last ingested: 2026-05-29 · **94 entities / 10 catalogs** · raw = `E:\MCProject\KMCProject` (mode: A — 참조만, Cowork 폴더로 마운트)
 > 매 ingest 후 자동 갱신. 생성기 locate 단계의 진입점.
 > **카테고리 시스템**: 단일 진실원 = [[categories]] (활성 10 + 예약 1). 본 인덱스는 활성 카테고리만 enumerate.
+> **횡단 정책 레이어**: 2026-05-31 도입. SSOT = [[ue-cross-cutting-policies/index]]. entity 양식에 `policy_refs`+§6 추가(STRUCTURE.md §4). Component 카테고리 파일럿 마이그레이션 완료, 그 외 카테고리는 단위별 진행 예정.
 
 ---
 
@@ -12,6 +13,11 @@
 
 ## 신뢰도 범례
 - 🟢 VAULT · 🟡 PARTIAL · 🔴 INFERRED
+
+## 횡단 정책 (cross-cutting — 카테고리와 직교)
+- 진입점·SSOT: [[ue-cross-cutting-policies/index]] (mcwiki 미러 / 원본 5.5.4 · 프로젝트 5.7.4)
+- entity 급 5종(07 profiling / 09 global-iterator / 10 component / 11 asset-loading / 12 asset-opt)을 entity frontmatter `policy_refs` + 본문 §6 `횡단 정책 준수` 에 기록. 적용 매트릭스 = 정책 index §3.
+- 메타 정책 6종(14~19)은 생성기·리뷰 워크플로우용 — entity 에 부착 안 함. 운영 규약: CLAUDE.md §2.7.
 
 ---
 

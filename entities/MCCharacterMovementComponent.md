@@ -9,6 +9,9 @@ source_paths:
   - KMCProject/MCPlayModule/Actor/Component/MCCharacterMoveComponent.h
   - KMCProject/MCPlayModule/Actor/Component/MCCharacterMoveComponent.cpp
 vault_refs: []
+policy_refs:
+  - component-policies
+  - profiling-scope-rule
 last_ingested: 2026-05-29
 ---
 
@@ -67,6 +70,19 @@ UCharacterMovementComponent 확장 — Custom Movement Mode 로 Climbing 추가,
 - 명칭 오타 다수: `Collsion`, `Form`, `Deteat`, `Overlab`, `AWake`, `Cancle`, `Legde`, `iteraction` — BP 노출 시 redirector 필요할 수 있음. 향후 정리 시 일괄 변경 + redirector 등록.
 - `PhysCustom` 단계 안에서 `ProcessLanded` 호출 race 가능 (UE 표준 함정 — 🟡 추론).
 - Climb 상태 변수가 매우 많아 `CancleClimbing` 시점에 모두 리셋 안 하면 stale 상태 진입 가능.
+
+## 횡단 정책 준수
+> 적용: [[ue-cross-cutting-policies/index]] §3 (Component 행). raw 미마운트 — 추출 본문 근거, 미확인은 ❓.
+
+| 정책 | 적용 | 근거 / 위반·미확인 | 신뢰도 |
+|---|---|---|---|
+| 10 component | ✅ | `UCharacterMovementComponent` 자손 — GC/CDO 준용. Climb 상태 다수 = 값 타입(GC 부담 낮음). | 🟡 |
+| 07 profiling | ✅ | `PhysCustom`/`PhysClimb` 매 프레임 물리 — 스코프 유무 ❓. → [[ue-cross-cutting-policies/07_ProfilingScopeRule]] | ❓ |
+| 11 asset-loading | ➖ | asset 멤버 없음. | 🟢 |
+| 12 asset-opt | ➖ | 자산 미소유. | 🟢 |
+| 09 global-iterator | ➖ | 미사용. | 🟢 |
+
+> 네트워크 예측(Replicated Movement) 정합성은 [[ue-cross-cutting-policies/16_PolicyPriority]] Tier3(네트워크) 영역 — entity 정책 외.
 
 ## 연관 entity
 - [[entities/MCMoveComponent]] — GetMovement() 페어, OnLandingEvent 구독자.

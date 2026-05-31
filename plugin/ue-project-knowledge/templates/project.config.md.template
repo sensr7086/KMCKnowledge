@@ -35,7 +35,8 @@
 KNOWLEDGE_REPO=/path/to/new/repo
 mkdir -p "$KNOWLEDGE_REPO/catalogs" "$KNOWLEDGE_REPO/entities"
 
-for f in CLAUDE.md STRUCTURE.md categories.md index.md; do
+mkdir -p "$KNOWLEDGE_REPO/ue-cross-cutting-policies"
+for f in CLAUDE.md STRUCTURE.md categories.md index.md ue-cross-cutting-policies/index.md; do
   sed -e "s|{{ PROJECT_NAME }}|MyProject|g" \
       -e "s|{{ KNOWLEDGE_REPO_NAME }}|MyProjectKnowledge|g" \
       -e "s|{{ KNOWLEDGE_REPO_PATH }}|E:\\\\MyProject\\\\MyProjectKnowledge|g" \
@@ -60,7 +61,8 @@ $Vars = @{
     UE_VERSION = "5.7.4"
     MCWIKI_MCP_SERVER_NAME = "MCWiki_-_UE_5_7_4_Knowledge_Vault"
 }
-foreach ($f in 'CLAUDE.md','STRUCTURE.md','categories.md','index.md') {
+New-Item -ItemType Directory -Force "$KnowledgeRepo/ue-cross-cutting-policies" | Out-Null
+foreach ($f in 'CLAUDE.md','STRUCTURE.md','categories.md','index.md','ue-cross-cutting-policies/index.md') {
     $content = Get-Content "templates/${f}.template" -Raw
     foreach ($k in $Vars.Keys) {
         $content = $content -replace "\{\{ $k \}\}", $Vars[$k]
@@ -68,6 +70,15 @@ foreach ($f in 'CLAUDE.md','STRUCTURE.md','categories.md','index.md') {
     Set-Content "$KnowledgeRepo/$f" $content
 }
 ```
+
+---
+
+## 횡단 정책 레이어 (요약)
+
+- 진입점·SSOT: `ue-cross-cutting-policies/index.md` — mcwiki 횡단 정책의 **프로젝트 중립** 미러.
+- entity 급 5 (profiling / global-iterator / component / asset-loading / asset-opt) + 메타 6 (14~19).
+- 정책 본문은 **일반 UE 지식**이라 인스턴스 값(PROJECT_NAME / UE_VERSION)을 본문에 박지 않는다 — 본 파일을 SSOT 로 참조.
+- 미러 원본 UE 버전 ↔ 본 인스턴스 `UE_VERSION`({{ UE_VERSION }}) 차이는 정책 18(ModelEvolutionAudit) staleness 감사 대상.
 
 ---
 

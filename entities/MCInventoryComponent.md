@@ -11,6 +11,8 @@ source_paths:
 vault_refs:
   - entities/UActorComponent
   - concepts/Component-Lifecycle
+policy_refs:
+  - component-policies
 last_ingested: 2026-05-29
 ---
 
@@ -47,6 +49,17 @@ last_ingested: 2026-05-29
 - **전량 거절 시 false + OutOverflow=Count**: 가득 차 하나도 못 넣으면 `Add` 가 false. 호출측은 반환값/Overflow 둘 다 확인해야 잔량 누락 없음. (REQ-21 "꽉 차면 false")
 - **Capacity 는 슬롯이 아닌 종류 상한**: 같은 item_id 추가는 Capacity 를 소비하지 않음(스택 병합). UI/디자인이 "슬롯 수"로 오해하지 않도록 주의 — v1 단순화.
 - `Count <= 0` 입력은 `Add`/`CanAccept` 모두 false (no-op). 호출측은 0 수량 결과를 미리 거르는 게 안전(LootableComponent::GrantResults 가 `Item.Count<=0` skip).
+
+## 횡단 정책 준수
+> 적용: [[ue-cross-cutting-policies/index]] §3 (Component 행). raw 미마운트 — 추출 본문 근거, 미확인은 ❓.
+
+| 정책 | 적용 | 근거 / 위반·미확인 | 신뢰도 |
+|---|---|---|---|
+| 10 component | ✅ | `bCanEverTick=false` 명시(6대 §5), 저장은 `TMap<FName,int32>`(UObject 아님 → GC 부담 없음), Tick/콜백 없음. **동시 수정 보호는 호출측 책임**(단일 스레드 가정). → [[ue-cross-cutting-policies/10_ComponentPolicies]] | 🟢 |
+| 07 profiling | ➖ | 호출형(Add/CanAccept/Clear) — 매 프레임 진입점 없음. | 🟢 |
+| 11 asset-loading | ➖ | asset 멤버 없음(id→count 맵). | 🟢 |
+| 12 asset-opt | ➖ | 자산 미소유. | 🟢 |
+| 09 global-iterator | ➖ | 미사용. | 🟢 |
 
 ## 연관 entity
 - [[entities/MCLootableComponent]] — `GrantResults` 에서 본 컴포넌트 `Add` 호출 (TargetInventoryOverride 또는 Instigator 탐색).

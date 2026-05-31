@@ -15,6 +15,11 @@
 - 🟡 PARTIAL — 코드 직접 추론 (정제 전)
 - 🔴 INFERRED — 엔진 지식(mcwiki)으로 구성, 프로젝트 선례 없음 (또는 본문 비활성)
 
+## 횡단 정책 (cross-cutting — 카테고리와 직교)
+- 진입점·SSOT: [[ue-cross-cutting-policies/index]] (mcwiki 미러, 프로젝트 중립 — 본문 07~19 는 미러링 단계 대기)
+- entity 급 5종(profiling / global-iterator / component / asset-loading / asset-opt)을 entity frontmatter `policy_refs` + 본문 §횡단 정책 준수 에 기록. 적용 매트릭스 = 정책 index §3.
+- 메타 정책(14~19)은 생성기·리뷰 워크플로우용 — entity 부착 안 함. 운영 규약: CLAUDE.md §2.7.
+
 ---
 
 ## 대분류 (catalogs)

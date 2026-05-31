@@ -12,6 +12,9 @@ vault_refs:
   - concepts/Component-Lifecycle
   - sources/ue-spatialpartition-toctree2
   - entities/UAnimMontage
+policy_refs:
+  - component-policies
+  - asset-loading-policy
 last_ingested: 2026-05-29
 ---
 
@@ -69,6 +72,17 @@ last_ingested: 2026-05-29
 - **bStartLocked 초기 설정은 broadcast 없음**: BeginPlay 에서 `State = Locked` 직접 대입(SetState 미경유) — 구독 전 시점이라 의도적.
 - **재굴림 시드 흔들기 조건**: `OnRegenComplete` 는 `bRerollOnRegen && LootSeed != 0` 일 때만 시드 변형. LootSeed==0(비결정)은 매 Roll 이 이미 새 시드라 별도 처리 불요.
 - `IsConditionMet` 는 BlueprintNativeEvent — 외부(Roller)는 반드시 `Execute_IsConditionMet` 래퍼로 호출.
+
+## 횡단 정책 준수
+> 적용: [[ue-cross-cutting-policies/index]] §3 (Component 행). raw 미마운트 — 추출 본문 근거, 미확인은 ❓.
+
+| 정책 | 적용 | 근거 / 위반·미확인 | 신뢰도 |
+|---|---|---|---|
+| 10 component | ✅ | `bCanEverTick=false` 명시(불필요 Tick 회피=6대 §5), BeginPlay 등록/EndPlay 해제+타이머 Clear(라이프사이클), 델리게이트/LootTable TObjectPtr UPROPERTY GC ✓. → [[ue-cross-cutting-policies/10_ComponentPolicies]] | 🟢 |
+| 11 asset-loading | △ | `LootTable`(TObjectPtr `UMCLootTableAsset`) = **Hard 참조**. EditAnywhere 데이터 자산 — Soft 전환 검토 후보(스폰 히칭 영향 낮음). → [[ue-cross-cutting-policies/11_AssetLoadingPolicy]] | 🟡 |
+| 07 profiling | ➖ | `bCanEverTick=false` + 이벤트성(Interact→Roll→Grant) — 매 프레임 진입점 없음. | 🟢 |
+| 12 asset-opt | ➖ | Mesh/VFX/Audio 자산 직접 소유 아님. | 🟢 |
+| 09 global-iterator | ➖ | 미사용 — subsystem 등록 패턴(09 권장 대안) 채택. | 🟢 |
 
 ## 연관 entity
 - [[entities/MCLootSubsystem]] — BeginPlay/EndPlay 에서 Register/Unregister, FindClosestLootable 후보.

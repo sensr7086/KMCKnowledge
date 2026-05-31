@@ -9,6 +9,9 @@ source_paths:
   - KMCProject/MCPlayModule/Actor/Component/MCActorComponent.h
   - KMCProject/MCPlayModule/Actor/Component/MCActorComponent.cpp
 vault_refs: []
+policy_refs:
+  - component-policies
+  - profiling-scope-rule
 last_ingested: 2026-05-29
 ---
 
@@ -50,10 +53,22 @@ KMCProject 의 모든 MC 컴포넌트가 상속하는 베이스 — `Init/Update
 - `Interface` 가 raw 포인터 — Owner Actor 가 먼저 사라지면 dangling 가능. SetInterface 호출 측이 라이프사이클 보장 책임.
 - BeginPlay/BeginDestroy override 시 Super 호출 누락 시 BP 노출/Garbage Collection 에 영향 (🟡 추론).
 
+## 횡단 정책 준수
+> 적용: [[ue-cross-cutting-policies/index]] §3 (Component 행). raw 미마운트 — 추출 본문 근거, 미확인은 ❓.
+
+| 정책 | 적용 | 근거 / 위반·미확인 | 신뢰도 |
+|---|---|---|---|
+| 10 component | ✅ | GC §3: `Interface` = **raw 포인터(UPROPERTY 아님)** → GC 방어 위반 후보 ❌ (Owner 라이프사이클 동기 가정 의존). Tick: `TickComponent`/`TickFired` 보유, `bCanEverTick` 기본값 ❓. GetOwner 캐싱 ❓. → [[ue-cross-cutting-policies/10_ComponentPolicies]] | 🟡 |
+| 07 profiling | ✅ | `TickComponent` 진입점 — 첫 줄 프로파일링 스코프 유무 ❓. → [[ue-cross-cutting-policies/07_ProfilingScopeRule]] | ❓ |
+| 11 asset-loading | ➖ | asset 멤버 없음(인터페이스 포인터만). | 🟢 |
+| 12 asset-opt | ➖ | 자산 미소유. | 🟢 |
+| 09 global-iterator | ➖ | 전역 이터레이터 미사용. | 🟢 |
+
+> 모든 MC 컴포넌트의 베이스 — 자손은 본 6대 평가를 상속·보강한다.
+
 ## 연관 entity
 - [[entities/MCActorInterface]] — `SetInterface(this)` 페어, AttachedComponent 맵의 value 타입.
 - [[entities/MCBouyancyComponent]] — 직접 자손
 - [[entities/MCMoveComponent]] — 직접 자손
 - [[entities/MCPartsLoaderComponent]] — 직접 자손
 - EMCComponentType (KMCProject/MCPlayModule/MCTypeDef/MCComponentTypeDef.h — 미인덱싱)
-- EMCMoveMode/MoveSpeed/MoveFlag (PlayEnum — 미인덱싱)

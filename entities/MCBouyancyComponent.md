@@ -9,6 +9,9 @@ source_paths:
   - KMCProject/MCPlayModule/Actor/Component/MCBouyancyComponent.h
   - KMCProject/MCPlayModule/Actor/Component/MCBouyancyComponent.cpp
 vault_refs: []
+policy_refs:
+  - component-policies
+  - profiling-scope-rule
 last_ingested: 2026-05-29
 ---
 
@@ -49,6 +52,17 @@ last_ingested: 2026-05-29
 - `AdjustBouyancy` 가 raw `UPrimitiveComponent*` TArray (TWeak 아님) — 컴포넌트 동적 소멸 시 dangling 가능. UPROPERTY(Transient) 라 직렬화는 안 되지만 GC 추적은 안전 (UPROPERTY 자체가 GC 마커).
 - `DispalcementRto` 오타 (Displacement) — 명명 일관성 깨짐. BP 노출 이름도 같이 변경하려면 redirector 등록 필요.
 - 본 클래스 헤더의 일부 한국어 주석은 CP949 mojibake 상태 — 임의 재인코딩 금지.
+
+## 횡단 정책 준수
+> 적용: [[ue-cross-cutting-policies/index]] §3 (Component 행). raw 미마운트 — 추출 본문 근거, 미확인은 ❓.
+
+| 정책 | 적용 | 근거 / 위반·미확인 | 신뢰도 |
+|---|---|---|---|
+| 07 profiling | ✅ | **`Update` = 매 프레임 부력 계산**(함정: 다점 샘플링 비용) — 첫 줄 스코프 의무. 스코프 유무 ❓. → [[ue-cross-cutting-policies/07_ProfilingScopeRule]] | 🟡 |
+| 10 component | ✅ | 베이스 MCActorComponent 6대. `AdjustBouyancy` raw `UPrimitiveComponent*` TArray + UPROPERTY(Transient) GC 마커 ✓. | 🟡 |
+| 11 asset-loading | ➖ | asset 멤버 없음(물 높이=계산). | 🟢 |
+| 12 asset-opt | ➖ | 자산 미소유. | 🟢 |
+| 09 global-iterator | ➖ | 미사용. | 🟢 |
 
 ## 연관 entity
 - [[entities/MCActorComponent]] — 직접 베이스.

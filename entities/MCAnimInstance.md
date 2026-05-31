@@ -9,6 +9,8 @@ source_paths:
   - KMCProject/MCPlayModule/Actor/Character/MCAnimInstance.h
   - KMCProject/MCPlayModule/Actor/Character/MCAnimInstance.cpp
 vault_refs: []
+policy_refs:
+  - profiling-scope-rule
 last_ingested: 2026-05-29
 ---
 
@@ -55,6 +57,17 @@ KMCProject 의 캐릭터 AnimInstance 베이스 — UMCMoveComponent 의 Move Mo
 - **BindMoveEvent 의 3번째 인자 `FOnMoveFlags _flag`** (reference 아님): 다른 두 인자 (`FOnMoveMode&`, `FOnMoveSpeed&`) 와 일관성 결여. 복사 전달이면 원본 델리게이트와의 구독 관계가 깨질 가능성. 🟡 — 의도된 차이일 가능성도 있으나 헤더 정보로 판별 불가.
 - **명칭 오타**: `MoveSpeedandle` / `MoveFlagandle` — 의도는 `MoveSpeedHandle` / `MoveFlagHandle`. BP 노출 변경 시 redirector 필요.
 - **상태 4비트의 직교성**: `Run/Walk/Air/Jump` 가 mutually exclusive 인지 (Walk=true + Run=true 동시 가능?) — AnimGraph 측 정책에 의존, 헤더에 명시 안 됨.
+
+## 횡단 정책 준수
+> 적용: [[ue-cross-cutting-policies/index]] §3 (Component 행). raw 미마운트 — 추출 본문 근거, 미확인은 ❓.
+
+| 정책 | 적용 | 근거 / 위반·미확인 | 신뢰도 |
+|---|---|---|---|
+| 07 profiling | ✅ | `NativeUpdateAnimation` 매 프레임 — 첫 줄 스코프 유무 ❓. 함정 "무거운 연산 금지" 와 정합. → [[ue-cross-cutting-policies/07_ProfilingScopeRule]] | ❓ |
+| 10 component | ➖ | `UAnimInstance` — 컴포넌트 6대(Mobility/GetOwner/Component Tick) 직접 적용 아님. 단 **델리게이트 unbind = GC 안전 준용**(NativeUninitialize/BeginDestroy 해제, 함정 기재). | 🟡 |
+| 11 asset-loading | ➖ | asset 멤버 없음. | 🟢 |
+| 12 asset-opt | ➖ | 자산 미소유. | 🟢 |
+| 09 global-iterator | ➖ | 미사용. | 🟢 |
 
 ## 연관 entity
 - [[entities/MCMoveComponent]] — Move 델리게이트 (FOnMoveMode/Speed/Flag) 발신처.

@@ -9,6 +9,10 @@ source_paths:
   - KMCProject/MCPlayModule/Actor/Component/MCWaterPlaneComponent.h
   - KMCProject/MCPlayModule/Actor/Component/MCWaterPlaneComponent.cpp
 vault_refs: []
+policy_refs:
+  - component-policies
+  - profiling-scope-rule
+  - asset-loading-policy
 last_ingested: 2026-05-29
 ---
 
@@ -49,6 +53,19 @@ last_ingested: 2026-05-29
 - 본 클래스에 명시 주석 없음 — SceneProxy 의 구체 구현 의도(파동·셰이더 입력)는 .cpp 또는 머티리얼 측에서 확인 필요 (🟡).
 - `AdjustBouyancy` 가 raw `UPrimitiveComponent*` TArray — UMCBouyancyComponent 의 동명 멤버와 혼동 주의. UPROPERTY(Transient) 가 GC 마커 역할.
 - 일부 한국어 주석 CP949 mojibake — 임의 재인코딩 금지.
+
+## 횡단 정책 준수
+> 적용: [[ue-cross-cutting-policies/index]] §3 (Component 행). raw 미마운트 — 추출 본문 근거, 미확인은 ❓.
+
+| 정책 | 적용 | 근거 / 위반·미확인 | 신뢰도 |
+|---|---|---|---|
+| 10 component | ✅ | `UMeshComponent` 자손 — 커스텀 SceneProxy/Bounds. GC: `Material` TObjectPtr, `AdjustBouyancy` UPROPERTY(Transient) 마커 ✓. Mobility ❓. | 🟡 |
+| 07 profiling | ✅ | `TickComponent` 보유 — 매 프레임 수면 갱신 시 첫 줄 스코프 의무. 스코프 유무 ❓. → [[ue-cross-cutting-policies/07_ProfilingScopeRule]] | ❓ |
+| 11 asset-loading | △ | `Material`(TObjectPtr) = **Hard 참조**(물 셰이더). Soft 전환 검토 후보. → [[ue-cross-cutting-policies/11_AssetLoadingPolicy]] | 🟡 |
+| 12 asset-opt | ➖ | 수면=절차적 그리드(자산 LOD 아님). 그리드 해상도 성능은 자체 튜닝. | 🟡 |
+| 09 global-iterator | ➖ | 미사용. | 🟢 |
+
+> SceneProxy 렌더 스레드 안전(게임스레드 데이터 직접 접근 금지)은 렌더 규약 — entity 정책 외.
 
 ## 연관 entity
 - [[entities/MCWaterVolume]] — Owner Actor, WaterPlaneComponent UPROPERTY 로 본 컴포넌트 보관.
